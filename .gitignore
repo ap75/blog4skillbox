@@ -1,0 +1,14 @@
+__pycache__
+venv
+media
+local*
+!locale
+*.sqlite3
+.DS_Store
+*.gz
+*.pyc
+*.log
+*.tmp
+*.bat
+*.ini
+*.bkp

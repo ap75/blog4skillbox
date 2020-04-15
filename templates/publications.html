@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}My blog - publications{% endblock %}
+
+{% block content %}
+    <h2>Список публикаций</h2>
+
+    <table>
+        <tr>
+            <td>Название</td>
+            <td>Дата</td>
+        </tr>
+
+        {% for publication in publications %}
+        <tr>
+            <td><a href="/publications/{{ publication.id }}">{{ publication.name }}</a></td>
+            <td>{{ publication.date }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+{% endblock %}

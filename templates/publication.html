@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}My blog - {{ name }}{% endblock %}
+
+{% block content %}
+    <h2>Публикация "{{ name }}"</h2>
+    <p>{{ date }}</p>
+    <p>{{ text|safe }}</p>
+{% endblock %}
