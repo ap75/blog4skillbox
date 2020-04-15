@@ -9,8 +9,38 @@ def index(request):
     return render(request, 'index.html')
 
 
+messages_data = []
+
+
 def contacts(request):
-    return render(request, 'contacts.html')
+    if request.method == 'POST':
+        # Кто-то пытается добавить новое сообщение на страницу контактов
+        # Секретный код проверять не будем - пусть это могут делать все
+        # Проверим, все ли поля заполнены и добавим сообщение в список
+        name = request.POST['name']
+        text = request.POST['text']
+        if not name:
+            return render(request, 'contacts.html', {
+                'error': 'Пустое имя, представьтесь, пожалуйста',
+                'messages': messages_data
+            })
+        if not text:
+            return render(request, 'contacts.html', {
+                'error': 'Пустой текст, напишите что-нибудь',
+                'messages': messages_data
+            })
+        messages_data.append({
+            # id нам тоже не нужен, если только мы не хотим дать возможность
+            # например, редактировать или удалять уже отправленные сообщения
+            #'id': len(messages_data),
+            'name': name,
+            'text': text.replace('\n', '<br />')
+        })
+    # Независимо от метода (GET или PUT) мы должны отрендерить и показать
+    # страницу с контактами
+    return render(request, 'contacts.html', {
+        'messages': messages_data
+    })
 
 
 publications_data = [
