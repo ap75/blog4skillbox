@@ -106,7 +106,36 @@ def publications(request):
 
 def publication(request, number):
     if number < len(publications_data):
-        return render(request, 'publication.html', publications_data[number])
+        error = ''
+        if request.method == 'POST':
+            # Добавляем комментарий на публикацию, проверим поля
+            # Секретный код проверять не будем - пусть комментировать могут все
+            name = request.POST['name']
+            text = request.POST['text']
+            if not name:
+                error = 'Пустое имя, представьтесь, пожалуйста'
+            elif not text:
+                error = 'Пустой текст, напишите что-нибудь'
+            if not error:
+                # Все в порядке, добавляем комментарий
+                comment = {
+                    'name': name,
+                    'date': datetime.now(),
+                    'text': text.replace('\n', '<br />')
+                }
+                if 'comments' in publications_data[number]:
+                    # К этой публикации уже есть комментарии,
+                    # добавим еще один в список
+                    publications_data[number]['comments'].append(comment)
+                else:
+                    # А тут комментариев пока еще нет, этот - первый,
+                    # поэтому он будет единственный в списке
+                    publications_data[number]['comments'] = [comment]
+        # Не забудем передать нужные данные (конекст) в шаблон
+        context = publications_data[number]
+        # Если были ошибки, добавим их тоже
+        context['error'] = error
+        return render(request, 'publication.html', context)
     else:
         return redirect('/')
 

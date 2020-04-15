@@ -6,4 +6,28 @@
     <h2>Публикация "{{ name }}"</h2>
     <p>{{ date }}</p>
     <p>{{ text|safe }}</p>
+	{% if comments %}
+		<h3>Комментарии к публикации:</h3>
+		<ul>
+        {% for comment in comments %}
+			<li>
+				{{ comment.text|safe }}<br>
+				От: <i>{{ comment.name|safe }}</i>,
+				написано: <i>{{ comment.date }}</i>
+			</li>
+        {% endfor %}
+		</ul>
+	{% else %}
+		<h3>Комментариев к публикации пока нет</h3>
+	{% endif %}
+	<h3>Оставить комментарий:</h3>
+    <p style="color: red">{{ error }}</p>
+    <form method="post" action="{{ request.path }}">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Ваше имя" />
+        <br /><br />
+        <textarea name="text" placeholder="Текст"></textarea>
+        <br />
+        <input type="submit" value="Опубликовать" />
+    </form>
 {% endblock %}
