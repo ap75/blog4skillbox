@@ -52,7 +52,7 @@ $(document).ready(function() {
 	<p>
 		Оцените публикацию:
 		<a href="#" id="{{ id }}.0.1"><img src="{% static 'img/icon_plus.jpg' %}"></a>
-		<b>{% firstof likes '0' %}</b>
+		<b>{{ likes }}</b>
 		<a href="#" id="{{ id }}.0.-1"><img src="{% static 'img/icon_minus.jpg' %}"></a>
 	</p>
 	{% if comments %}
@@ -64,7 +64,7 @@ $(document).ready(function() {
 				От: <i>{{ comment.name|safe }}</i>,
 				написано: <i>{{ comment.date }}</i>
 				<a href="#" id="{{ id }}.{{ comment.id }}.1"><img src="{% static 'img/icon_plus.jpg' %}"></a>
-				<b>{% firstof comment.likes '0' %}</b>
+				<b>{{ comment.likes }}</b>
 				<a href="#" id="{{ id }}.{{ comment.id }}.-1"><img src="{% static 'img/icon_minus.jpg' %}"></a>
 			</li>
         {% endfor %}

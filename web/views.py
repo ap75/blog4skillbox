@@ -101,11 +101,9 @@ def publication(request, number):
                 )
         # Не забудем передать нужные данные (конекст) в шаблон
         context = pub
-        context['comments'] = [{
-            'name': comment.name,
-            'date': comment.date,
-            'text': comment.text,
-        } for comment in pubs[0].comments.all()]
+        context['comments'] = [
+            model_to_dict(comment) for comment in pubs[0].comments.all()
+        ]
         # Если были ошибки, добавим их тоже
         context['error'] = error
         return render(request, 'publication.html', context)
@@ -118,37 +116,21 @@ def status(request):
 
 
 def click(request):
-    # Если метод не POST или нам не пришел id, то что-то не так
-    if request.method != 'POST' or not 'id' in request.POST:
-        return redirect('/')
-    publucation, comment, operation = request.POST['id'].split('.')
-    # Здесь должна быть куча проверок: publucation - число и существует,
-    # comment - число и (0 или существует), operation - одно из двух
-    # допустимых значений, но...
-    # поступим проще: все оберенем в try ... except
+    # Здесь должна быть куча проверок: метод POST, мы получили параметр id
+    # publication - число и существует, comment - число и существует,
+    # operation - число, но... поступим проще: все оберенем в try ... except
     try:
-        likes = 0
-        publucation = int(publucation)
-        comment = int(comment)
-        operation = int(operation)
-        if comment:
-            # Лайк относится к комментарию
-            if 'likes' in publications_data[publucation]['comments'][comment - 1]:
-                # У этого комментария уже есть лайки
-                publications_data[publucation]['comments'][comment - 1]['likes'] += operation
-            else:
-                # Это первый лайк для этого комментария
-                publications_data[publucation]['comments'][comment - 1]['likes'] = operation
-            likes = publications_data[publucation]['comments'][comment - 1]['likes']
-        else:
-            # Лайк относится к публикации
-            if 'likes' in publications_data[publucation]:
-                # У этой публикации уже есть лайки
-                publications_data[publucation]['likes'] += operation
-            else:
-                # Это первый лайк для этой публикации
-                publications_data[publucation]['likes'] = operation
-            likes = publications_data[publucation]['likes']
+        publication, comment, operation = request.POST['id'].split('.')
+        # Получаем id объекта; если задан comment, то это комментарий,
+        # иначе считаем, что это публикация
+        id = int(comment) or int(publication)
+        # Получаем объект из БД
+        object = (Comment if int(comment) else Publication).objects.get(id=id)
+        # теоретически в operation может передаваться любое число и мы можем, 
+        # например, нажатием одной кнопки добавлять/отнимать сразу 10 лайков
+        object.likes += int(operation)
+        object.save()
     except:
-        return redirect('/')
-    return JsonResponse({'likes': likes})
+        # что-то (неважно, что) пошло "не так"
+        return JsonResponse({'likes': ''})
+    return JsonResponse({'likes': object.likes})
