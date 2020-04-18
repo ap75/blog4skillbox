@@ -5,7 +5,7 @@ from django.forms import model_to_dict
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
-from .models import Message, Publication
+from .models import Message, Publication, Comment
 
 
 def index(request):
@@ -79,7 +79,33 @@ def publication(request, number):
 
     if len(pubs) == 1:
         pub = model_to_dict(pubs[0])
-        return render(request, 'publication.html', pub)
+        error = ''
+        if request.method == 'POST':
+            # Добавляем комментарий на публикацию, проверим поля
+            # Секретный код проверять не будем - пусть комментировать могут все
+            name = request.POST['name']
+            text = request.POST['text']
+            if not name:
+                error = 'Пустое имя, представьтесь, пожалуйста'
+            elif not text:
+                error = 'Пустой текст, напишите что-нибудь'
+            if not error:
+                # Все в порядке, добавляем комментарий
+                Comment.objects.create(
+                    publication=pubs[0],
+                    name=name,
+                    text=text.replace('\n', '<br />')
+                )
+        # Не забудем передать нужные данные (конекст) в шаблон
+        context = pub
+        context['comments'] = [{
+            'name': comment.name,
+            'date': comment.date,
+            'text': comment.text,
+        } for comment in pubs[0].comments.all()]
+        # Если были ошибки, добавим их тоже
+        context['error'] = error
+        return render(request, 'publication.html', context)
     else:
         return redirect('/')
 
