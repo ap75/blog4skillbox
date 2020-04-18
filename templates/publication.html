@@ -1,4 +1,47 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block header %}
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script>
+$(document).ready(function() {
+	// В document.cookie ищем куки с именем 'csrftoken'
+	function get_csrftoken() {
+		const CSRFTOKEN = 'csrftoken';
+		if (document.cookie)
+			for (var cookie of document.cookie.split(';'))
+				if ($.trim(cookie).startsWith(CSRFTOKEN + '='))
+					return decodeURIComponent(cookie.substring(CSRFTOKEN.length + 2))
+		return '';
+	}
+	// Во все AJAX POST запросы добавим заголовок X-CSRFToken
+	// чтобы у django не возникало к нам нехорошего предубеждения
+	// (можно, конечно, отключить проверку CSRF, но это неспортивно)
+	$.ajaxSetup({
+		headers: {
+			'X-CSRFToken': get_csrftoken()
+		}
+	});
+	// При нажатии на ссылку отправим AJAX-запрос на сервер
+	// Выбираем только "ссылки вникуда", т.е. href="#"
+	$('a[href="#"]').click(function() {
+		// Запомним, какую из ссылок нажимали
+		var a = $(this);
+		// И передадим POST запрос на сервер
+		$.post(
+			"{% url 'click' %}", // адрес возьмем из Django
+			{'id': a.attr('id')} // атрибут id нажатой ссылки
+		).done(function(data) {
+			// найдем тег <b> по соседству с нашей ссылкой
+			// и внутри него выведем ответ сервера
+			a.siblings('b').html(data.likes)
+		});
+		// Чтобы браузер не переходил по ссылке '#' - вернем false
+		return false;
+	})
+});
+</script>
+{% endblock %}
 
 {% block title %}My blog - {{ name }}{% endblock %}
 
@@ -6,6 +49,12 @@
     <h2>Публикация "{{ name }}"</h2>
     <p>{{ date }}</p>
     <p>{{ text|safe }}</p>
+	<p>
+		Оцените публикацию:
+		<a href="#" id="{{ id }}.0.1"><img src="{% static 'img/icon_plus.jpg' %}"></a>
+		<b>{% firstof likes '0' %}</b>
+		<a href="#" id="{{ id }}.0.-1"><img src="{% static 'img/icon_minus.jpg' %}"></a>
+	</p>
 	{% if comments %}
 		<h3>Комментарии к публикации:</h3>
 		<ul>
@@ -14,6 +63,9 @@
 				{{ comment.text|safe }}<br>
 				От: <i>{{ comment.name|safe }}</i>,
 				написано: <i>{{ comment.date }}</i>
+				<a href="#" id="{{ id }}.{{ comment.id }}.1"><img src="{% static 'img/icon_plus.jpg' %}"></a>
+				<b>{% firstof comment.likes '0' %}</b>
+				<a href="#" id="{{ id }}.{{ comment.id }}.-1"><img src="{% static 'img/icon_minus.jpg' %}"></a>
 			</li>
         {% endfor %}
 		</ul>

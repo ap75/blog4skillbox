@@ -24,4 +24,5 @@ urlpatterns = [
     path('publish', views.publish),
     path('publications', views.publications),
     path('publications/<int:number>', views.publication),
+    path('click', views.click, name='click')
 ]

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.forms import model_to_dict
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 
 from .models import Message, Publication, Comment
@@ -10,6 +10,9 @@ from .models import Message, Publication, Comment
 
 def index(request):
     return render(request, 'index.html')
+
+
+messages_data = []
 
 
 def contacts(request):
@@ -112,3 +115,40 @@ def publication(request, number):
 
 def status(request):
     return HttpResponse('<h2>OK</h2>')
+
+
+def click(request):
+    # Если метод не POST или нам не пришел id, то что-то не так
+    if request.method != 'POST' or not 'id' in request.POST:
+        return redirect('/')
+    publucation, comment, operation = request.POST['id'].split('.')
+    # Здесь должна быть куча проверок: publucation - число и существует,
+    # comment - число и (0 или существует), operation - одно из двух
+    # допустимых значений, но...
+    # поступим проще: все оберенем в try ... except
+    try:
+        likes = 0
+        publucation = int(publucation)
+        comment = int(comment)
+        operation = int(operation)
+        if comment:
+            # Лайк относится к комментарию
+            if 'likes' in publications_data[publucation]['comments'][comment - 1]:
+                # У этого комментария уже есть лайки
+                publications_data[publucation]['comments'][comment - 1]['likes'] += operation
+            else:
+                # Это первый лайк для этого комментария
+                publications_data[publucation]['comments'][comment - 1]['likes'] = operation
+            likes = publications_data[publucation]['comments'][comment - 1]['likes']
+        else:
+            # Лайк относится к публикации
+            if 'likes' in publications_data[publucation]:
+                # У этой публикации уже есть лайки
+                publications_data[publucation]['likes'] += operation
+            else:
+                # Это первый лайк для этой публикации
+                publications_data[publucation]['likes'] = operation
+            likes = publications_data[publucation]['likes']
+    except:
+        return redirect('/')
+    return JsonResponse({'likes': likes})
