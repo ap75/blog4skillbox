@@ -21,7 +21,7 @@ urlpatterns = [
     path('', views.index),
     path('contacts', views.contacts),
     path('status', views.status),
-    path('publish', views.publish),
+    path('publish', views.publish, name='publish'),
     path('publications', views.publications),
     path('publications/<int:number>', views.publication),
     path('click', views.click, name='click')
